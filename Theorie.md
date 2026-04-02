@@ -1,0 +1,348 @@
+# Recommender Systems - Themenliste
+
+RSs sind ein nützliches Werkzeug, um mit Information Überfluss umzugehen. Ihre Aufgabe ist dem Nutzer neue Objekten zu zeigen, die relevant zu
+seiner Aufgabe sind. Ihre Ziele sind:
+
+- Erhöhen Sie die Anzahl der verkauften Artikel
+- Verkaufen Sie vielfältigere Artikel
+- Steigern Sie die Zufriedenheit Ihrer Nutzer
+- Erhöhen Sie die Nutzerbindung
+- Besser verstehen, was der Benutzer möchte
+
+## Typical input data for Recommender Systems (RS)
+
+Empfehlungssysteme basieren im Allgemeinen auf drei Hauptkategorien von Eingabedaten:
+
+### 1) User Data
+
+ - Benutzerprofile (Alter, Standort, usw.)
+ - Explizites Feedback (Bewertungen, Likes, Rezensionen)
+ - Implizites Verhalten (Klicks, Browserverlauf, Käufe)
+
+### 2) Item Data
+
+- Metadaten (Genre, Kategorie, Preis, Tags)
+- Inhaltliche Merkmale (Text, Bilder, Produktbeschreibungen)
+
+### 3) Interaktions- oder Transaktionsdaten
+
+- Kaufhistorie
+- Bewertungsmatrizen
+- Klickstromdaten
+- Anzeige-/Hörverlauf
+
+## Rating scales
+
+**Explizite Ratings** sind Bewertungen, die **Nutzer bewusst abgeben** wie Sternebewertungen 1-5 oder Like/Dislike-Angaben.
+Der Vorteil ist, dass sie eine klare Präferenz ausdrücken, der Nachteil ist, dass viele Nutzer nur wenige Bewertungen abgeben.
+
+**Implizite Ratings** entstehen aus dem Verhalten der Nuter, **ohne dass sie aktiv Bewertung abgeben**.
+Beispiele sind Klicks, Käufe, Streaming-Dauer usw. Vorteil ist, dass diese Daten meist in grösserer Menge
+vorhanden sind, der Nachteil ist, dass die keine tatsächliche Präferenz eines Nutzers zeigen.
+
+## Types of Recommender Systems
+Empfehlungssysteme unterscheiden sich hinsichtlich des verwendeten Wissens und insbesondere hinsichtlich des Empfehlungsalgorithmus.
+Hohe Auszeichnung:
+
+| Non-Personalised  | Personalised                                                                                                                          |
+|-------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+ | Diese empfehlen jedem Nutzer dieselben Artikel, ohne individuelle Vorlieben zu berücksichtigen. | Diese generieren spezifische Empfehlungen für jeden Nutzer, indem sie Informationen über dessen Präferenzen oder Verhalten verwenden. |
+| Beliebste Artikel | Content-based                                                                                                                         |
+| Bestseller        | Collaborative filtering                                                                                                               |
+| Aktuelle Trends | Noch weitere                                                                                                                          |
+
+**Content based:**
+Das System lernt, Artikel zu empfehlen, die denen ähnlich sind,
+die dem Nutzer in der Vergangenheit gefallen haben. Zum Beispiel Wenn ein Nutzer einen Film aus dem Genre Komödie positiv bewertet hat,
+kann das System lernen, andere Filme aus diesem Genre zu empfehlen.
+
+
+**Zu diesem Beispiel** haben wir die Filmen; Superman v Batam (Adventure, Super-Hero), Guardians of the Galaxy (Comedy, Adventure, Super-Hero,
+Sci-fi), Captain America: Civil War (Comedy, Super-Hero).
+
+**Input User Ratings / User-Rating Matrix URM**
+
+| Film                      | User Input |
+|---------------------------|------------|
+| Superman v Batam          | 2 |
+ | Guardians of the Galaxy   | 10 |
+ | Captain America Civil War | 8 |
+
+$$X$$
+
+**Movies Matrix  / Item Content Matrix ICM**
+
+| Film | Comedy | Adventure | Super-Hero | Sci-fi |
+|------|--------|-----------|------------|--------|
+ | Superman v Batam | 0 | 1         | 1 | 0 |
+| Guardians of the Galaxy | 1 | 1 | 1 | 1 |
+ | Captain America Civil War | 1 | 0 | 1 | 0 |
+
+$$=$$
+
+**Weighted genre Matrix**
+
+| Film                      | Comedy        | Adventure | Super-Hero | Sci-fi |
+|---------------------------|---------------|-----|------------|--------|
+ | Superman v Batam          | 0             | 2   | 2          | 0      |
+| Guardians of the Galaxy   | 10            | 10  | 10         | 10     |
+ | Captain America Civil War | 8             | 0   | 8          | 0      |   
+ | User Profile              | 18            | 12  | 20         | 10 |
+ | Normiert User Profile     | 18 / 60 = 0.3 | 0.2 | 0.33 | 0.16 |
+
+**Candidate Matrix**
+
+| Film                            | Comedy | Adventure | Super-Hero | Sci-fi |
+|---------------------------------|--------|-----------|------------|--------|
+ | Hitchhiker's guide to the galaxy | 1      | 1         | 0 | 1 |
+ | Batman begins | 0      | 0         | 1 | 0 |
+ | Spiderman | 1      | 0         | 1 | 0| 
+ | $X$ | 0.3    | 0.2       | 0.33 | 0.16 |
+ | Hitchhiker's guide to the galaxy | 0.3    | 0.2       | 0 | 0.16 |
+ | Batman begins | 0      | 0         | 0.33 | 0 |
+ | Spiderman | 0.3    | 0         | 0.33 | 0 |
+
+**Recommender Matrix**
+
+| Film | Weighted Aggregate      | User Rating Vorhersage |                      
+|------|-------------------------|------------------------------------|
+|Hitchhiker's guide to the galaxy | 0.3 + 0.2 + 0.16 = 0.66 | 6.6 |
+ | Batman begins | 0.33                    | 3.3 |
+ | Spiderman | 0.63                    | 6.3 |
+
+Anhand dieser Technik das System würde diesem User Hitchhiker's guide to the galaxy empfehlen,
+aber ein Film aus einem Genre wie Drama wäre nie empfohlen. 
+
+**Collaborative filtering:**
+Dieses Problem kann mit einem anderen System gelöst werden.
+**Collaborative filtering**, basiert nicht auf den Eigenschaften der Filme (Genres, Features), sondern auf dem Verhalten vieler Nutzer.
+
+Die Grundidee ist, dass Nutzer mit ähnlichem Bewertungsverhalten vermutlich auch in Zukunft ähnliche Filme mögen.
+Das System sucht daher nach anderen Nutzern mit ähnlichen Bewertungen und verwendet deren Präferenzen, um neue Empfehlungen zu generieren.
+
+**Zu diesem Beispiel** haben wir eine 5 Users mit ähnlinchen "Kauf-/Filmgeschichte":
+
+| User | Superman v Batman | Titanic | Twilight | Spiderman | Batman begins | Schindler's list |
+|------|------------------|---------|----------|----------|---------------|------------------|
+ | A    |                  | 1       | 5        | |               |                  | |
+ | B    | 4                | 3       |          | | 5             |                  |
+| C    | 5                | 5       | 1        | 3 | 4             |                  |
+ | D    | 2                |         |          |  | 3             | 5                |
+ | E | | 3       | 1        | | | 4                |
+ | F | | 4       |          | 4 | | 5                |
+
+Um die Ähnlichkeit zwischen den Filmen zu berechnen können wir verschiedene Methoden verwenden:
+
+**Cosine Similarity** vergleicht den Winkel zwischen zwei Vektoren, deswegen werden alle fehlenden Werten in der oberen Matrix mit 0 ersetzt.
+Aus den Bewertungen können jetzt Vektoren für die Filmen gebildet Werden.
+
+Superman v Batam: $ i = (0,4,5,2,0,0)$
+
+Titanic: $ j = (1,3,5,0,3,4) $ und so weiter
+
+$$ sim = \frac{i * j}{||i||*||j||}  $$
+
+1) Skalarprodukt zwischen den zwei Filmvektoren berechnen:
+
+$i * j = 0 * 1 + 4 * 3 + 5 * 5 + 2 * 0 + 0 * 3 + 0 * 4 = 37$
+
+2) Normen berechnen
+
+$ ||i|| = \sqrt{0^2+4^2+5^2+2^2+0^2+0^2} = 3\sqrt{5}~~,~~ ||j|| = \sqrt{1^2+3^2+5^2+0^2+3^2+4^2} = 2\sqrt{15}$
+
+3) Similarity berechnen
+
+$ sim = \frac{ 37}{3\sqrt{5} *2\sqrt{15}} = \frac{37\sqrt{3}}{90} \approx 0.71$
+
+Nachdem dieses Verfahren zwischen allen Vektoren berechnet wurde, kann die **Similarity Matrix** gebildet werden:
+
+| Film      | Superman v Batman | Titanic | Twilight | Spiderman | Batman begins | Schindler's list |
+| --------- | ----------------- | ------- | -------- | --------- | ------------- | ---------------- |
+| Superman v Batman | 1.00              | 0.71    | 0.14     | 0.45      | 0.97          | 0.18             |
+| Titanic   | 0.71              | 1.00    | 0.32     | 0.80      | 0.64          | 0.51             |
+| Twilight  | 0.14              | 0.32    | 1.00     | 0.12      | 0.11          | 0.09             |
+| Spiderman | 0.45              | 0.80    | 0.12     | 1.00      | 0.34          | 0.49             |
+| Batman begins | 0.97              | 0.64    | 0.11     | 0.34      | 1.00          | 0.26             |
+| Schindler's list | 0.18              | 0.51    | 0.09     | 0.49      | 0.26          | 1.00             |
+
+So sehen wir zum Beispiel, dass zwei Filmen aus unterschiedlichen Filmgenren wie Spiderman und Titanic
+haben eine starke similarity und das System wird das berücksichtigen.
+
+Die **Pearson-Korrelation** reduziert bestimmte Bewertungs-Biases, indem sie die Bewertungen zunächst um ihren Mittelwert zentriert.
+Dadurch wird nicht die absolute Bewertung verglichen, sondern die relative Abweichung vom Durchschnitt.
+So können ähnliche Präferenzmuster erkannt werden, auch wenn Nutzer oder Filme **unterschiedliche durchschnittliche Bewertungsniveaus aufweisen**.
+
+$$ sim(i,j) = \frac{ \sum^n_{u=1}(r_{u,i}-\bar{r_i})(r_{u,j}-\bar{r_j})}{\sqrt{\sum^n_{u=1}(r_{u,i}-\bar{r_i})^2}*\sqrt{\sum^n_{u=1}(r_{u,j}-\bar{r_j})^2}} $$
+
+- $r_{u,i}$: Bewertung von User $u$ für Film $i$
+- $r_{u,j}$: Bewertung von User $u$ für Film $j$
+- $\bar{r_i}$: Durschschnittsbewertung von Film $i$
+- $\bar{r_j}$: Durschschnittsbewertung von Film $j$
+
+Wie zuvor verwenden wir die Filmvektoren Superman v Batman: $i=(0,4,5,2,0,0)$, Titanic: $j=(1,3,5,0,3,4)$
+
+1. Mittelwerte berechnen und Vektoren zentrieren
+$$ \bar{r_i} = \frac{0+4+5+2+0+0}{6} \approx \underline{1.83}~~,~~\bar{r_j} = \frac{1+3+5+0+3+4}{6} \approx \underline{2.67} $$
+$$ i - \bar{r_i} = (-1.83, 2.17, 3.17, 0.17, -1.83, -1.83)~~,~~ j-\bar{r_j} = (-1.67, 0.33, 2.33, -2.67, 0.33, 1.33) $$
+
+2.  Zähler berechnen $\sum^6_{u=1}(r_{u,i}-\bar{r_i})(r_{u,j}-\bar{r_j})$
+
+$$ (-1.83 * -1.67) + (2.17 * 0.33) + (3.17 * 2.33) + (0.17 * -2.67) + (-1.83 * 0.33) + (-1.83 * 1.33) \approx \underline{7.67}$$ 
+
+3. Nenner berechnen $\sum^6_{u=1}(r_{u,i}-\bar{r_i})^2~~,~~\sum^6_{u=1}(r_{u,j}-\bar{r_j})^2$
+
+$$ \sum^6_{u=1}(r_{u,i}-\bar{r_i})^2 = ((-1.83)^2+2.17^2+3.17^2+0.17^2+(-1.83)^2+(-1.83)^2) = \underline{24.83} $$
+$$ \sum^6_{u=1}(r_{u,j}-\bar{r_j})^2 = ((-1.67)^2+0.33^2+2.33^2+(-2.67)^2+0.33^2+1.33^2) = \underline{17.33}$$
+
+4. Pearson korrelation berechnen
+
+$$ sim(i,j) = \frac{7.67}{\sqrt{24.83} * \sqrt{17.1045}} = 0.37$$
+
+
+
+
+## Missing as **Random** gegen Missing as **Negative**
+
+Fehlende Bewertungen oder Interaktionen treten häufig auf. Annahmen zur Interpretation dieser fehlenden Daten sind **Missing as Random**
+und **Missing as Negative** (wie oben gemacht).
+
+Bei der **Missing as Random (MAR)** Annahme wird davon ausgegangen, dass fehlende Bewertungen zufällig fehlen und keine direkte Information
+über die Präferenzen eines Nutzers enthalten. Ein nicht bewertetes Item bedeutet also nicht automatisch, dass der Nutzer es nicht mag. **Also 
+fehlende Bewertungen werden nicht mit einem 0 erstetzt und werden nicht in die Ähnlichkeitsberechnung einbezogen.**
+
+Bei der **Missing as Negartive** Annahme hingegen werden fehlende Interaktionen als impliziertes negatives Feedback interpretiert. Ein nicht bewertet
+, nicht angeklickt Item, interessiert dem User nicht. **Also fehlende Bewertungen werden mit einem 0 ersetzt und werden in die Ähnlichkeitsberechnung einbezogen.**
+
+## Evaluation Metrics
+
+**Mean Squared Error (MSE)** wird verwendet, wenn ein Empfehlungssystem User-Ratings für Filme vorhersagt.
+Die Metrik misst den durchschnittlichen quadratischen Unterschied zwischen den vorhergesagten Ratings und den tatsächlichen User-Ratings.
+Dadurch kann bewertet werden, wie genau das Modell die Präferenzen der Nutzer vorhersagt:
+
+$$ \frac{1}{n} \sum^n_{i=1}(y_i-\hat{y_i})^2$$
+- $y_i$: tatsächlicher Wert (z.B. echtes User-Rating)
+- $\hat{y_i}$: Vorhersage
+
+
+- Vorteile: Die Formel ist leicht zu implementieren und zu berechnen und die Funktion ist einfach zu differenzieren, deswegen kann sie gut in Optimierungsalgorithmen wie Gradient Descent verwendet werden.
+- Nachteile: Da Fehler quadriert werden, können einzelne grosse Fehler das Ergebnis stark verzerren.
+
+**Accuarcy and Recall**, wenn das System Items empfiehlt statt Ratings vorherzusagen.
+Um Precision und Recall zu verstehen, muss man drei Mengen unterscheiden:
+
+- Empfohlene Items (recommended items): Das sind alle Filme, die das Recommender-System dem Nutzer vorschlägt.
+- Relevante Items (relevant items): Das sind Filme, die der Nutzer tatsächlich gekauft / hoch bewertet hat.
+- Relevante empfohlene Items (relevant recommended items): Das sind die Filme, die sowohl empfohlen wurden als auch tatsächlich relevant sind.
+
+**Accuracy** Wie viele der Items waren korrekt empfohlen?
+$$Accuracy = \frac{relevante~~empfohlene~~Items}{empfohlene~~Items} $$
+
+**Recall** Wie viele der guten Items hat das System überhaupt entdeckt?
+$$ Recall = \frac{relevante~~empfohlene~~Items}{relevante~~Items}$$
+
+- Vorteile: Diese Metriken funktionieren gut, wenn das System eine Liste von empfohlenen Items (z.B. Top-10 Filme) erstellt.
+- Nachteile: Die Metriken unterscheiden nicht, wie sehr ein Nutzer ein Item mag, sondern nur, ob es relevant ist oder nicht.
+
+## Evaluation Methods
+
+**Online Methode**:
+Einfach sehen, ob der User "gekauft" oder "gecklikt" hat, was die Methode empfohlen hat.
+
+
+**Offline Methode**:
+Interaktionen maskieren, ein Prediction wird gemacht und dann schauen, ob die Empfehlung der 
+Methode mit der versteckten Interaktion überstimmt.
+
+
+## Community-based RS
+
+Es gibt Hinweise darauf, dass Menschen sich eher auf Empfehlungen ihrer Freunde verlassen als auf Empfehlungen 
+von ähnlichen, aber anonymen Personen. Die Ähnlichkeitsmasse oder Aggregationsmethoden von Collaborative- und Community-based RSs
+können gleich sein (Cosine Similarity, Pearson-Korrelation), aber sie unterscheiden sich in der **Struktur der Datenaggregation**.
+Diese RS-Modelle sammeln Informationen über die sozialen Beziehungen der Nutzer
+und bilden aus diesen Gemeinschaften Nutzerbewertungsvektoren. Ein Problem dieses Systems ist die **Cold-start Situation**, 
+d.h. wenn die Nutzer nicht genügend Bewertungen abgegeben haben, um die Ähnlichkeit mit anderen Nutzern zu berechnen.
+
+## Kontext
+
+**Context-Aware Collaborative Filtering (CARS)** erweitert klassische Collaborative-Filtering-Methoden, indem zusätzlich zum User und Item
+auch Kontextinformationen in den Empfehlungsprozess einbezogen werden. Kontext kann z. B. Zeit, Ort, Stimmung, Begleitung oder Gerät sein. Ziel ist es,
+Empfehlungen zu geben, die besser zur aktuellen Nutzungssituation passen.
+
+Es gibt drei grundlegende Ansätze, Kontext in Recommender Systems zu integrieren:
+
+1. **Reduction-based (Pre-filtering)**
+Beim Pre-Filtering werden nur die Daten verwendet,
+die zum aktuellen Kontext passen. Das bedeutet, dass vor der Empfehlungserstellung
+der Datensatz gefiltert wird. Beispielsweise könnten nur Bewertungen genutzt werden,
+die im gleichen Kontext entstanden sind (z. B. Filme, die Nutzer am Wochenende bewertet haben).
+Anschliessend wird ein normales Collaborative-Filtering-Verfahren auf diesem reduzierten Datensatz angewendet.
+
+2. **Contextual Post-filtering**
+Beim Post-Filtering wird das Empfehlungssystem zunächst ohne Kontext ausgeführt.
+Erst nachdem eine Liste von Empfehlungen erstellt wurde, wird der Kontext verwendet,
+um diese Liste zu filtern oder neu zu gewichten. Dadurch bleiben nur die Empfehlungen übrig,
+die im aktuellen Kontext relevant sind.
+
+3. **Contextual Modeling**
+Dieser Ansatz integriert den Kontext direkt in das Vorhersagemodell.
+Kontext wird dabei als zusätzlicher Faktor neben User und Item in die Modellierung aufgenommen (z. B. als zusätzliche Dimension in einer Matrix oder in faktorisierungsbasierten Modellen).
+Dadurch kann das Modell lernen, wie sich Nutzerpräferenzen abhängig vom Kontext verändern. Dieser Ansatz gilt als der komplexeste, aber auch leistungsfähigste.
+
+## Damping effect
+
+Der Damping-Effekt (auch Regularisierung oder Shrinking) ist ein wichtiges Konzept in Recommender Systems, insbesondere im Collaborative Filtering.
+Er adressiert ein zentrales Problem: unzuverlässige Schätzungen bei wenigen Datenpunkten, also zum Beispiel Filmen mit einem 5/5 Rating, die eigentlich
+nur 6-7 Reviews haben. Der Damping effect pennalisiert, den Film mit sehr wenig Reviews, damit er nicht über einen Film mit 4/5 Rating und 500 Reviews empfehlen wird.
+
+### Damping auf Similarity:
+
+$$ sim_{damped}(i,j) = \frac{n_{ij}}{n_{ij} + \lambda} *sim(i,j) $$
+
+- $sim(i,j)$: ursprüngliche Ähnlichkeit (z.B. Cosine oder Pearson)
+- $n_{ij}$: Anzahl gemeinsamer Bewertungen
+- $lambda$: Dämpfungsparameter (Hyperparameter)
+
+**Beispiel**
+
+| Fall | $sim(i,j)$ | $n_{i,j}$ | $\lambda = 10$           | Gedämpfte Similarity |
+|------|------------|-----------|--------------------------|---------------------|
+ |Wenig Daten| 1.0 | 2 | $\frac{2}{12} = 0.17$    | $1 * 0.17 = 0.17$   |
+| Viele Daten | 0.8 | 100 | $\frac{100}{110} = 0.91$ | $0.8 * 0.91 = 0.73$ |
+
+**Interpertration**
+
+Die Ähnlichkeit zwischen zwei Filmen wird gedämpft, **Richtung 0** gezogen, da die zwei Filmen nur wenig gemeinsame Daten (Reviews) haben.
+Dadurch entstehen **robuster Nachbarschaften**, die bessere Empfehlungen sind.
+
+### Damping bei Rating
+
+$$ \hat{r} = \frac{ \bar{r_i} * n_i + \lambda * \mu}{n_{i} + \lambda} $$
+
+- $\hat{r_i}$: gedämpfte Durchschnittbewertung
+- $\bar{r_i}$: Durschnittbewertung für Film $i$
+- $n_i$: Anzahl Bewertungen für Film $i$
+- $\mu$: globaler Durschsnitt aller Filmen, kann auch globaler Durschsnitt pro Genre sein
+- $\lambda$: Dämpfungsparameter (Hyperparameter)
+
+**Beispiel**
+
+| Fall        | Durchschnitt $ \bar{r}_i$ | $n_i$ | $\lambda = 10$    | Gedämpfte Bewertung $\hat{r}_i$                                      |
+| ----------- | ------------------------- | ----- | ----------------- | -------------------------------------------------------------------- |
+| Wenig Daten | 9.0                       | 2     | $\frac{2}{12}$    | $\frac{2 \cdot 9 + 10 \cdot 5}{12} = \frac{18 + 50}{12} = 5.67$      |
+| Viele Daten | 8.0                       | 100   | $\frac{100}{110}$ | $\frac{100 \cdot 8 + 10 \cdot 5}{110} = \frac{800 + 50}{110} = 7.73$ |
+
+**Interpretation**
+
+Die Durschschnittsbewertung eines Films wird gedämpft, **Richtung globalen mittel $\mu$** gezogen, da er nur wenig Bewertungen hat.
+Dadurch entstehen stabiler Vorhersagen über wie beliebt ist ein Film.
+
+
+## Dataset partitioning (training / validation split)
+
+Bei der Erstellung eines RS soll der Datensatz in zwei Teile aufgeteilt werden.
+Der **Trainingdatensatz** wird verwendet, um das Modell zu trainieren und die Parameter zu lernen.
+Der **Validierungsdatensatz** wird anschlieesend genutzt, um die Leistung des Modells auf
+bisher ungesehenen Daten zu überprüfen und Hyperparameter zu optimieren.
+
+
