@@ -243,6 +243,39 @@ $$ Recall = \frac{relevante~~empfohlene~~Items}{relevante~~Items}$$
 - Vorteile: Diese Metriken funktionieren gut, wenn das System eine Liste von empfohlenen Items (z.B. Top-10 Filme) erstellt.
 - Nachteile: Die Metriken unterscheiden nicht, wie sehr ein Nutzer ein Item mag, sondern nur, ob es relevant ist oder nicht.
 
+**Novelty** in RS beschreibt wie viel "Unbekannt" oder unfamiliär sind die empfohlenen Objekte dem Nützer.
+
+- Life-level novelty: Objekten die, der Nützer has nie in seinem Leben "getroffen" hat, das ist die strengste
+Definition von Novelty, aber schwierig zu messen.
+- System-level novelty: Objekten die, der Nützer innerhalb der Daten des Systems nie "getroffen" hat,
+abgeleitet aus ihren vergangenen Interaktionen oder ihrem Konsumverlauf.
+- Recommendation list-level novelty: Konzentriert sich darauf, wiederholte oder überflüssige Elemente in der Empfehlungsliste zu vermeiden.
+
+$$R_u \cap I_u = \emptyset$$
+
+- $R_u$: Liste der empfohlenen Objekten
+- $I_u$: Liste der Objekten des Nützers
+- $I$: Liste aller Objekten im System
+
+**Diversity** in RS sorgt um die Diversität der Objekten in der Liste der empfohlenen Objekten.
+$$ div = 1 - \frac{i * j}{||i||*||j||} $$
+
+**Unexcpectidness** in RS bezieht sich darauf, wie stark die empfohlenen Elemente von den Erwartungen des Benutzers abweichen,
+wodurch ein Überraschungseffekt entsteht, indem offensichtliche oder vorhersehbare Vorschläge vermieden werden.
+
+**Serendipity** bezieht sich in RS auf die Bereitstellung nützlicher und relevanter Elemente, die für den Benutzer sowohl unerwartet
+als auch angenehm überraschend sind.
+ $$ ser_u = \frac{|(R_u \ E_u) \cap Rel_u |}{R_u} $$
+
+- $E_u$: erwartet Objekten
+- $Rel_u$: relevante Objekten (User rating > Threshhold rating)
+
+**Coverage** misst wie viele von den Objekten im System kann das RS empfehlen.
+$ cov = \frac{|I_p|}{I} $
+
+- $I_p$: Objekten, die das RS empfehlen kann
+
+
 ## Evaluation Methods
 
 **Online Methode**:
@@ -250,8 +283,16 @@ Einfach sehen, ob der User "gekauft" oder "gecklikt" hat, was die Methode empfoh
 
 
 **Offline Methode**:
-Interaktionen maskieren, ein Prediction wird gemacht und dann schauen, ob die Empfehlung der 
-Methode mit der versteckten Interaktion überstimmt.
+Offline Methoden sind wichtig, weil wir nur dieversprechende Algorithmen in teueren so Online-Methoden testen wollen.
+
+### All but $n$ approach
+Der *All-but-$n$*-Ansatz ist ein Evaluationsverfahren, bei dem für jeden Nutzer nur $n$ Interaktionen als Eingabe beibehalten werden,
+während alle übrigen Interaktionen ausgeblendet und als Ground Truth zur Bewertung der Empfehlungsleistung verwendet werden.
+
+Typishe wahl für die Hyper-Parameter $n$:
+- 5 - 10 → Cold-Start Simulation
+- 10 - 20 → Stabiler Evaluation
+
 
 
 ## Community-based RS
@@ -344,5 +385,13 @@ Bei der Erstellung eines RS soll der Datensatz in zwei Teile aufgeteilt werden.
 Der **Trainingdatensatz** wird verwendet, um das Modell zu trainieren und die Parameter zu lernen.
 Der **Validierungsdatensatz** wird anschlieesend genutzt, um die Leistung des Modells auf
 bisher ungesehenen Daten zu überprüfen und Hyperparameter zu optimieren.
+
+### Cross validation
+
+A technique to evaluate a model more reliably. Instead of splitting the data once into train/validation,
+we repeat this process multiple times. This ensures:
+- every user is evaluated multiple times
+- the model is not dependent on one lucky/unlucky split
+- results are more robust and generalizable
 
 
