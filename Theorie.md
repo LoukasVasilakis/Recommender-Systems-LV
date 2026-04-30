@@ -123,18 +123,19 @@ Das System sucht daher nach anderen Nutzern mit ähnlichen Bewertungen und verwe
 **Zu diesem Beispiel** haben wir eine 5 Users mit ähnlinchen "Kauf-/Filmgeschichte":
 
 | User | Superman v Batman | Titanic | Twilight | Spiderman | Batman begins | Schindler's list |
-|------|------------------|---------|----------|----------|---------------|------------------|
- | A    |                  | 1       | 5        | |               |                  | |
- | B    | 4                | 3       |          | | 5             |                  |
-| C    | 5                | 5       | 1        | 3 | 4             |                  |
- | D    | 2                |         |          |  | 3             | 5                |
- | E | | 3       | 1        | | | 4                |
- | F | | 4       |          | 4 | | 5                |
+|------|-------------------|---------|----------|-----------|---------------|------------------|
+ | A    | 0                 | 1       | 5        | 0         | 0             | 0                |
+ | B    | 4                 | 3       | 0        | 0         | 5             | 0                |
+| C    | 5                 | 5       | 1        | 3         | 4             | 0                |
+ | D    | 2                 | 0       | 0        | 0         | 3             | 5                |
+ | E | 0                 | 3       | 1        | 0         | 0             | 4                |
+ | F | 0                 | 4       | 0        | 4         | 0             | 5                |
 
 Um die Ähnlichkeit zwischen den Filmen zu berechnen können wir verschiedene Methoden verwenden:
 
-**Cosine Similarity** vergleicht den Winkel zwischen zwei Vektoren, deswegen werden alle fehlenden Werten in der oberen Matrix mit 0 ersetzt.
-Aus den Bewertungen können jetzt Vektoren für die Filmen gebildet Werden.
+**Cosine Similarity** vergleicht den Winkel zwischen zwei Bewertungsvektoren. Fehlende Werte werden nicht durch Nullen ersetzt;
+stattdessen wird die Ähnlichkeit nur für die Teilmenge der Benutzer (oder Elemente) berechnet, die beide Entitäten bewertet haben.
+
 
 Superman v Batam: $ i = (0,4,5,2,0,0)$
 
