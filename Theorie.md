@@ -199,6 +199,141 @@ $$ \sum^6_{u=1}(r_{u,j}-\bar{r_j})^2 = ((-1.67)^2+0.33^2+2.33^2+(-2.67)^2+0.33^2
 
 $$ sim(i,j) = \frac{7.67}{\sqrt{24.83} * \sqrt{17.1045}} = 0.37$$
 
+## Model-based RS: SVD (Singular Value Decomposition)
+
+Die KNN-basierten Collaborative-Filtering-Methoden gehören zu den **Memory-based** Verfahren: Sie speichern die gesamte User-Rating-Matrix und suchen zur Vorhersagezeit ähnliche Nutzer oder Filme. SVD ist hingegen ein **Model-based** Verfahren. Anstatt direkt mit der grossen, dünn besetzten Matrix zu arbeiten, lernt das Modell eine **kompakte Repräsentation** in nur wenigen latenten Dimensionen (*latent factors*). Diese Faktoren entsprechen **keinen** expliziten Genres wie "Komödie" oder "Action", sondern werden automatisch gelernt — sie können Konzepte wie "alt vs. neu", "düster vs. fröhlich" oder beliebige Mischungen davon kodieren.
+
+### Grundidee der Matrixfaktorisierung
+
+Die **User-Rating-Matrix R** (Grösse $m \times n$, also Nutzer × Filme) soll durch das Produkt zweier kleinerer Matrizen approximiert werden:
+
+$$ R \approx P \cdot Q^T $$
+
+- $P$: User-Faktor-Matrix ($m \times k$), jede Zeile ist ein Nutzer-Vektor $p_u$
+- $Q$: Item-Faktor-Matrix ($n \times k$), jede Zeile ist ein Film-Vektor $q_i$
+- $k$: Anzahl latenter Faktoren (Hyperparameter `n_factors`)
+
+Da typischerweise $k \ll m, n$ gilt, wird die ursprüngliche Information **komprimiert**.
+
+**Zu diesem Beispiel** haben wir 4 Nutzer und 4 Filme:
+
+| User | Inception | Titanic | Avengers | Notebook |
+|------|-----------|---------|----------|----------|
+| A    | 5         | 1       | 5        | 1        |
+| B    | 4         | 2       | 4        | 2        |
+| C    | 1         | 5       | 1        | 5        |
+| D    | 2         | 4       | 2        | 4        |
+
+Hier sind klar zwei Muster zu erkennen: A und B mögen Action (Inception, Avengers), C und D mögen Drama (Titanic, Notebook). Mit $k = 2$ kann SVD die Matrix etwa so zerlegen:
+
+**Mathematisches Vorgehen**
+
+### 1. Ausgangsmatrix R
+
+$ R =
+[[5, 1, 5, 1],
+ [4, 2, 4, 2],
+ [1, 5, 1, 5],
+ [2, 4, 2, 4]] $
+
+### 2. Annahme: Matrix-Faktorisierung
+
+Wir approximieren:
+
+$R ≈ P · Q^T$
+
+mit:
+- $P$: User × Faktoren (4×2)
+- $Q$: Item × Faktoren (4×2)
+
+### 3. Gewählte latente Faktoren
+
+Faktor 1 = "Action"  
+Faktor 2 = "Drama"
+
+**P (User-Faktoren)**
+
+### 4. User-Faktoren (P)
+
+
+| User | Faktor 1 ("Action") | Faktor 2 ("Drama") |
+|------|---------------------|--------------------|
+| A    | 2.2                 | 0.4                |
+| B    | 1.8                 | 0.7                |
+| C    | 0.4                 | 2.2                |
+| D    | 0.7                 | 1.8                |
+
+### 5. Item-Faktoren (Q)
+
+**Q (Item-Faktoren)**
+
+| Film      | Faktor 1 ("Action") | Faktor 2 ("Drama") |
+|-----------|---------------------|--------------------|
+| Inception | 2.2                 | 0.3                |
+| Titanic   | 0.3                 | 2.2                |
+| Avengers  | 2.2                 | 0.3                |
+| Notebook  | 0.3                 | 2.2                |
+
+
+### 6. Rekonstruktion: R_hat = P · Q^T
+
+Formel für einzelne Einträge:
+
+$\hat{r}(u, i) = p_u · q_i$
+
+### 7. Beispielrechnung (User A, Film Inception)
+
+$p_A$ = (2.2, 0.4)
+$q_Inception$ = (2.2, 0.3)
+
+$\hat{r}$ = 2.2*2.2 + 0.4*0.3
+      = 4.84 + 0.12
+      = 4.96 ≈ 5
+
+### 8. Interpretation
+
+- Hoher Wert in Faktor 1 → Action-Präferenz
+- Hoher Wert in Faktor 2 → Drama-Präferenz
+
+Beispiel:
+- User A: (2.2, 0.4) → bevorzugt Action
+- User C: (0.4, 2.2) → bevorzugt Drama
+
+Die Vorhersage für User A und Inception ist das Skalarprodukt der zugehörigen Vektoren:
+
+$$ \hat{r}_{A,Inception} = p_A \cdot q_{Inception}^T = 2.2 \cdot 2.2 + 0.4 \cdot 0.3 = 4.84 + 0.12 \approx 4.96 $$
+
+Das stimmt sehr gut mit dem tatsächlichen Wert $5$ überein.
+
+### Funk-SVD (Surprise-Implementierung)
+
+Die klassische lineare-Algebra-SVD funktioniert nur auf **voll besetzten** Matrizen. Da die User-Rating-Matrix aber **stark sparse** ist (im MovieLens-Datensatz ca. 98%), wird in der Praxis die **Funk-SVD** verwendet (von Simon Funk während des Netflix-Prize 2006 entwickelt). Diese erweitert die Vorhersageformel zusätzlich um Bias-Terme:
+
+$$ \hat{r}_{u,i} = \mu + b_u + b_i + p_u \cdot q_i^T $$
+
+- $\mu$: globaler Durchschnitt aller Bewertungen
+- $b_u$: User-Bias (bewertet dieser Nutzer generell höher/niedriger?)
+- $b_i$: Item-Bias (wird dieser Film generell höher/niedriger bewertet?)
+- $p_u \cdot q_i^T$: Skalarprodukt der latenten Vektoren (das eigentliche "SVD-Stück")
+
+Die Parameter $b_u, b_i, p_u, q_i$ werden mit **Stochastic Gradient Descent (SGD)** **nur auf den beobachteten Bewertungen** gelernt — fehlende Werte werden also nicht durch Nullen ersetzt, sondern einfach ignoriert. Optimiert wird die regularisierte quadratische Fehlerfunktion:
+
+$$ \min \sum_{(u,i) \in R}(r_{u,i} - \hat{r}_{u,i})^2 + \lambda(b_u^2 + b_i^2 + ||p_u||^2 + ||q_i||^2) $$
+
+Der Regularisierungsterm $\lambda$ verhindert Overfitting, indem zu grosse Parameterwerte bestraft werden — konzeptuell ähnlich zum **Damping-Effekt** weiter unten.
+
+**Vorhersage-Beispiel mit Bias**
+
+Angenommen, der globale Mittelwert sei $\mu = 3.5$, der User-Bias von A sei $b_A = 0.2$ und der Item-Bias von Inception sei $b_{Inception} = 0.4$. Damit das Resultat im Bewertungs-Bereich bleibt, sind die latenten Vektoren in der Praxis **deutlich kleiner** als oben, z. B. $p_A = (0.5, 0.1)$ und $q_{Inception} = (0.6, 0.05)$:
+
+$$ \hat{r}_{A, Inception} = 3.5 + 0.2 + 0.4 + (0.5 \cdot 0.6 + 0.1 \cdot 0.05) = 3.5 + 0.2 + 0.4 + 0.305 \approx 4.41 $$
+
+Die latenten Vektoren modellieren also nur die **Abweichung** vom Bias-Modell ($\mu + b_u + b_i$), und das Ergebnis bleibt im erlaubten Wertebereich (z. B. 0.5 - 5.0).
+
+### Vor- und Nachteile
+
+- **Vorteile:** Geht sehr gut mit Sparsity um, da nur beobachtete Werte verwendet werden. Komprimiert die Information in $k$ Dimensionen, wodurch Vorhersagen schnell sind (nur ein Skalarprodukt). Kann generalisieren und auch für User-Item-Paare Vorhersagen treffen, für die KNN keine Nachbarn finden würde.
+- **Nachteile:** Latente Faktoren sind **nicht direkt interpretierbar** (Black-Box). Das **Cold-Start-Problem** bleibt: für komplett neue User oder Items kann kein Vektor gelernt werden. Die Wahl von $k$ ist ein wichtiger Hyperparameter, der optimiert werden muss (zu klein → Underfitting, zu gross → Overfitting + längere Trainingszeit).
 
 
 
