@@ -1,93 +1,138 @@
-# HS25
+# Recommender Systems – Mini Challenge FS26
 
+Dieses Repository enthält meine Lösung der Mini Challenge im Modul **Recommender Systems (RSY)** im Frühlingssemester 2026. Ziel der Challenge ist es, ausgehend vom **MovieLens-Datensatz** mehrere Empfehlungssysteme von Grund auf zu implementieren, sie systematisch zu evaluieren, ihre Hyperparameter zu optimieren und die Verfahren am Ende auf einem zurückgehaltenen Testset gegeneinander zu vergleichen.
 
+Neben dem ausführbaren Notebook `RSY_MiniChallenge_FS26.ipynb` liegt dem Projekt eine theoretische Zusammenfassung (`Theorie.md`) bei, in der die wichtigsten Konzepte rund um Recommender Systems aufgearbeitet sind und die als Referenz für die im Notebook umgesetzten Verfahren dient.
 
-## Getting started
+## Inhalt und Zielsetzung
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Recommender Systems (RS) sind ein nützliches Werkzeug, um mit Information Overflow umzugehen. Ihre Aufgabe ist es, dem Nutzer neue Objekte zu zeigen, die für seine Aufgabe relevant sind. Typische Ziele sind die Erhöhung der Anzahl verkaufter Artikel, das Ausspielen vielfältigerer Artikel, eine höhere Nutzerzufriedenheit, eine stärkere Nutzerbindung und ein besseres Verständnis dafür, was der Nutzer eigentlich möchte.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+In diesem Projekt werden die folgenden Bausteine eines RS abgedeckt: explorative Analyse des MovieLens-Datensatzes, Aufbau eines Baseline-Predictors, mehrere Varianten von Collaborative Filtering (item- und user-basiert mit Cosine- und Pearson-Ähnlichkeit, jeweils zentriert und nicht zentriert), ein modellbasiertes Verfahren mit Funk-SVD (`surprise`-Bibliothek) sowie kreative Erweiterungen wie ein Actor-Boost-Modell und eine MMR-basierte Diversitäts-Re-Ranking-Variante.
 
-## Add your files
+## Datensatz
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+Verwendet wird der frei verfügbare **MovieLens "ml-latest-small"**-Subset. Dieser Datensatz beschreibt 5-Sterne-Bewertungen und Free-Text-Tags eines Movie-Recommendation-Service und enthält 100'836 Bewertungen sowie 3'683 Tag-Anwendungen über 9'742 Filme von 610 Nutzern, erstellt zwischen dem 29. März 1996 und dem 24. September 2018.
+
+Der Datensatz besteht aus drei Hauptkomponenten: `movies` (Filme mit `movieId`, Titel und Genres), `ratings` (Bewertungen pro `userId`/`movieId`) und `tags` (von Nutzern vergebene Schlagwörter). Zusätzlich wird ein selbst erstellter Datensatz `movies_actors.csv` verwendet, der pro Film bis zu fünf bekannte Schauspieler enthält und vom Actor-Boost-Modell genutzt wird.
+
+Ein zentrales Merkmal des Datensatzes ist seine **Sparsity** von rund 98.3 %, also der Anteil fehlender Einträge in der User-Item-Matrix. Diese Eigenschaft motiviert viele der getroffenen Designentscheidungen, etwa den Einsatz von Funk-SVD oder die Annahme *Missing as Random* (fehlende Bewertungen werden nicht als implizite Negativ-Signale interpretiert).
+
+## Theoretische Grundlagen
+
+Die Datei `Theorie.md` fasst die theoretische Basis hinter den implementierten Verfahren zusammen. Behandelt werden typische Eingabedaten (User-, Item- und Interaktionsdaten), explizites versus implizites Feedback, der Unterschied zwischen personalisierten und nicht-personalisierten Empfehlungen, Content-based Filtering anhand einer Item-Content-Matrix mit gewichtetem User-Profil sowie Collaborative Filtering mit Cosine-Similarity und Pearson-Korrelation. Ergänzt wird dies durch Model-based-Ansätze (klassische SVD und Funk-SVD inklusive Bias-Termen), die Annahmen *Missing as Random* gegenüber *Missing as Negative*, eine Übersicht der wichtigsten Evaluationsmetriken (MAE, RMSE, Precision, Recall, Novelty, Diversity, Serendipity, Coverage), Offline- und Online-Evaluationsmethoden inklusive *All-but-n*-Approach, Community-based RS, Context-Aware Collaborative Filtering (CARS), den Damping-Effekt sowie Train/Validation/Test-Aufteilung mit Cross Validation.
+
+## Aufbau des Notebooks
+
+Das Notebook ist entlang der zehn Aufgabenblöcke der Mini Challenge strukturiert.
+
+In **Aufgabe 1** wird der Datensatz tiefgehend exploriert: Datenqualität (Datentypen, Duplikate, fehlende Werte) wird geprüft und bereinigt, anschliessend werden Top-20-Listen nach Durchschnittsbewertung und Anzahl Bewertungen erstellt, der Bewertungsbereich verifiziert, Genres analysiert, Sparsity berechnet und mehrere verteilende Plots (Bewertungen pro User, Bewertungsverteilung über Zeit und Genre, Heatmaps der User-Item-Matrix) erzeugt.
+
+In **Aufgabe 2** wird ein Baseline-Predictor nach Ekstrand/Riedl/Konstan implementiert: $b_{u,i} = \mu + b_u + b_i$. User- und Item-Bias werden regularisiert mit den Hyperparametern $\beta_u$ und $\beta_i$ gelernt, und ein Random-Recommender dient als Sanity-Check.
+
+In **Aufgabe 3** wird die Datenaufteilung umgesetzt: Die ersten 20 % der Nutzer werden als Test-Set zurückgehalten und bis Aufgabe 10 nicht angefasst. Auf den verbleibenden 80 % wird eine 5-fache Cross Validation mit *All-but-n*-Masking ($n=11$) etabliert. Zusätzlich werden alle Evaluationsmetriken (MAE, RMSE, Precision@N, Recall@N, Novelty, Diversity, Coverage) als wiederverwendbare Funktionen bereitgestellt.
+
+In **Aufgabe 4** werden die Hyperparameter $\beta_u$ und $\beta_i$ des Baseline-Modells per Grid Search über mehrere Werte optimiert und MAE, RMSE, Precision@N und Recall@N als Heatmaps visualisiert. Die Wahl der Zielmetrik wird begründet.
+
+In **Aufgabe 5** entstehen acht KNN-basierte Collaborative-Filtering-Varianten: item- und user-basiert, jeweils mit Cosine- und Pearson-Similarity, jeweils mit und ohne User-Mean-Centering. Die Empfehlungen werden für die Beispiel-User 3, 5 und 7 ausgegeben.
+
+In **Aufgabe 6** wird der Hyperparameter $K$ (Anzahl Nachbarn) für alle acht KNN-Modelle optimiert; RMSE, Precision@N und Recall@N werden als Funktion von $K$ geplottet und die Modelle werden inhaltlich verglichen.
+
+In **Aufgabe 7** kommt die `surprise`-Bibliothek mit Funk-SVD zum Einsatz. Die Vorhersageformel
+$\hat{r}_{ui} = \mu + b_u + b_i + p_u^\top q_i$
+wird kurz erklärt, anschliessend werden die latenten Filmfaktoren mit UMAP auf zwei Dimensionen reduziert und interaktiv visualisiert.
+
+In **Aufgabe 8** wird der Hyperparameter $k$ (`n_factors`) der SVD optimiert. RMSE, Precision@N und Recall@N werden als Funktion von $k$ untersucht und die Performance bei optimalem $k$ entlang aller Metriken ausgewiesen.
+
+**Aufgabe 9** ist als offene Forschungsaufgabe angelegt. Drei zusätzliche Recommender werden gebaut und optimiert: eine SVD-Variante mit alternativer Bias-Konfiguration (`fast_lr_high_reg`), ein Baseline-Recommender mit *Actor-Boost*, der Filme bevorzugt, in denen häufig besetzte Schauspieler mitspielen, sowie ein diversitätsoptimierter Baseline-Recommender mit MMR-Re-Ranking, das einen Kompromiss zwischen Relevanz und Diversität herstellt.
+
+In **Aufgabe 10** werden schliesslich alle gebauten RS – inklusive Random- und Baseline-Recommender – auf dem zu Beginn zurückgehaltenen Testset evaluiert. Die Ergebnisse werden tabellarisch und als vergleichende Plots gegenübergestellt und die Bedeutung eines unangetasteten Test-Sets bis zum Ende des Benchmarks wird diskutiert.
+
+## Evaluationsmetriken
+
+Die im Notebook eingesetzten Metriken folgen der Übersicht aus `Theorie.md`. **MAE** und **RMSE** messen die Vorhersagegenauigkeit auf Rating-Ebene, während **Precision@N** und **Recall@N** auf der Empfehlungsliste arbeiten. Ergänzt werden diese durch **Novelty** (wie unbekannt sind die empfohlenen Items für den Nutzer), **Diversity** (wie unterschiedlich sind die Items innerhalb einer Empfehlungsliste) und **Coverage** (welcher Anteil aller Items kann das System überhaupt empfehlen). Für die Hyperparametersuche wurde RMSE als primäre Zielmetrik gewählt, da sie mathematisch differenzierbar ist und grosse Fehler überproportional bestraft, was bei Rating-Vorhersagen sinnvoll ist.
+
+## Reproduzierbarkeit
+
+Die gesamte Lösung ist in **Python** implementiert. Wo nicht anders gefordert, kommen ausschliesslich `numpy`, `pandas`, `matplotlib` und `seaborn` zum Einsatz. Für den modellbasierten Teil (Aufgabe 7 ff.) werden zusätzlich `scikit-surprise`, `umap-learn`, `plotly` und `cython` verwendet.
+
+Die folgenden Schritte reichen aus, um das Notebook lokal auszuführen:
+
+```bash
+# Repository klonen
+git clone <repo-url>
+cd <repo-name>
+
+# (Empfohlen) Virtuelle Umgebung anlegen
+python -m venv .venv
+source .venv/bin/activate          # Linux / macOS
+.venv\Scripts\activate             # Windows
+
+# Abhängigkeiten installieren
+pip install numpy pandas matplotlib seaborn scikit-surprise umap-learn plotly cython jupyter
+
+# Notebook starten
+jupyter notebook RSY_MiniChallenge_FS26.ipynb
+```
+
+Der MovieLens-Subset wird unter `./Data/ml-latest-small/` erwartet (Originaldaten von [grouplens.org](https://grouplens.org/datasets/movielens/)). Die Datei `movies_actors.csv` liegt im selben Ordner und wird vom Actor-Boost-Modell in Aufgabe 9 eingelesen.
+
+## Projektstruktur
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.fhnw.ch/rsy2/hs25.git
-git branch -M main
-git push -uf origin main
+rsymcfs-26
+├── MiniChallenge   
+│    ├── Data/
+│    │   └── ml-latest-small/
+│    │        ├── links.csv
+│    │        ├── movies.csv
+│    │        ├── movies_actors.csv     # Selbst erstellter Schauspieler-Datensatz
+│    │        ├── ratings.csv
+│    │        ├── README.txt
+│    │        └── tags.csv
+│    └── RSY_MiniChallenge_FS26.ipynb   # Hauptnotebook mit allen Aufgaben
+├── Theorie.md                          # Theoretische Zusammenfassung der Konzepte 
+└── README.md                    
 ```
 
-## Integrate with your tools
+## Autor
 
-- [ ] [Set up project integrations](https://gitlab.fhnw.ch/rsy2/hs25/-/settings/integrations)
+**Loukas Vasilakis** – Mini Challenge im Modul *Recommender Systems (RSY)*, FHNW, Frühlingssemester 2026.
 
-## Collaborate with your team
+## Danksagung und Quellen
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Dieses Projekt verwendet den **MovieLens "ml-latest-small"**-Datensatz, der vom **GroupLens Research Project** der University of Minnesota bereitgestellt wird. Der Datensatz beschreibt 5-Sterne-Bewertungen und Free-Text-Tags von [MovieLens](http://movielens.org), einem Filmempfehlungsdienst, und wurde am 26. September 2018 generiert. Er enthält 100'836 Bewertungen und 3'683 Tag-Anwendungen über 9'742 Filme von 610 Nutzern.
 
-## Test and Deploy
+Die Verwendung erfolgt ausschliesslich zu Forschungs- und Ausbildungszwecken im Rahmen der Mini Challenge des Moduls *Recommender Systems (RSY)* an der FHNW. Es besteht keinerlei Verbindung zur University of Minnesota oder zur GroupLens Research Group, und es wird keine Befürwortung durch diese Institutionen impliziert. Der Datensatz unterliegt den Lizenzbedingungen von GroupLens, die unter <http://grouplens.org/datasets/> einsehbar sind.
 
-Use the built-in continuous integration in GitLab.
+Der ergänzende Datensatz `movies_actors.csv` (Schauspielerinformationen für das Actor-Boost-Modell in Aufgabe 9) wurde mithilfe eines ChatGPT-Agents erzeugt und ist nicht Teil des offiziellen MovieLens-Datensatzes.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+### Zitation
 
-***
+> F. Maxwell Harper and Joseph A. Konstan. 2015. *The MovieLens Datasets: History and Context.* ACM Transactions on Interactive Intelligent Systems (TiiS) 5, 4: 19:1–19:19. <https://doi.org/10.1145/2827872>
 
-# Editing this README
+## Lizenz
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+```
+MIT License
 
-## Suggestions for a good README
+Copyright (c) 2026 Loukas Vasilakis
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-## Name
-Choose a self-explaining name for your project.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
